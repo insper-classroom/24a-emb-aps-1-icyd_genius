@@ -5,6 +5,7 @@
  */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include "pico/stdlib.h"
 #include "hardware/gpio.h"
 
@@ -30,7 +31,7 @@ volatile int v[] = {};
 volatile int n = 0;
 volatile int Highscore = 0;
 volatile int gameState = 0;
-volatile int round = 1;
+volatile int roundn = 1;
 
 
 void btn_callback(uint gpio, uint32_t events) {
@@ -57,6 +58,15 @@ void addNewColor() {
     int l = getRandomNumber();
     v[n] = l;
     n++;
+}
+
+void soundCreator(int freq, int duration) {
+    for (int i = 0; i <= freq*duration; i++) {
+        gpio_put(BUZ_PIN, 1);
+        sleep_ms((1/freq)/2);
+        gpio_put(BUZ_PIN, 0);
+        sleep_ms((1/freq)/2);
+    }
 }
 
 void piscaLED(int PIN, int freq, int duration) {
@@ -121,15 +131,6 @@ void emptyArray() {
         Highscore = n;
     }
     n = 0;
-}
-
-void soundCreator(int freq, int duration) {
-    for (int i = 0; i <= freq*duration; i++) {
-        gpio_put(BUZ_PIN, 1);
-        sleep_ms((1/freq)/2);
-        gpio_put(BUZ_PIN, 0);
-        sleep_ms((1/freq)/2);
-    }
 }
 
 void endingSong() {
@@ -243,14 +244,14 @@ int main() {
             piscaSEQ();
             sleep_ms(500);
             waitInputs();
-            round++;
+            roundn++;
         } 
         if (gameState == 2) {
             endingSong();
-            printf("%d\n", round);
-            gameState == 0;
+            printf("%d\n", roundn);
+            gameState = 0;
             emptyArray();
-            round = 1;
+            roundn = 1;
         }
     }
 }
