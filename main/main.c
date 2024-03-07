@@ -8,17 +8,8 @@
 #include <stdlib.h>
 #include "pico/stdlib.h"
 #include "hardware/gpio.h"
-
-const int BUZ_PIN = 10;
-const int BTNR_PIN = 15;
-const int BTNG_PIN = 14;
-const int BTNY_PIN = 13;
-const int BTNB_PIN = 12;
-const int BTNN_PIN = 11;
-const int LEDR_PIN = 2;
-const int LEDG_PIN = 3;
-const int LEDY_PIN = 4;
-const int LEDB_PIN = 5;
+#include <time.h>
+#include "project.h"
 
 
 volatile int flagR = 0;
@@ -51,7 +42,8 @@ void btn_callback(uint gpio, uint32_t events) {
 }
 
 int getRandomNumber() {
-  return rand() % 4;
+    srand((unsigned)time(NULL));
+    return rand() % 4;
 }
 
 void addNewColor() {
@@ -61,11 +53,15 @@ void addNewColor() {
 }
 
 void soundCreator(int freq, int duration) {
-    for (int i = 0; i <= freq*duration; i++) {
+    float period_ms = 1000.0 / freq;
+    int half_period_ms = (int)(period_ms / 2.0);
+    int total_cycles = freq * duration / 1000;
+    
+    for (int i = 0; i < total_cycles; i++) {
         gpio_put(BUZ_PIN, 1);
-        sleep_ms((1/freq)/2);
+        sleep_ms(half_period_ms);
         gpio_put(BUZ_PIN, 0);
-        sleep_ms((1/freq)/2);
+        sleep_ms(half_period_ms);
     }
 }
 
@@ -73,52 +69,71 @@ void piscaLED(int PIN, int freq, int duration) {
     gpio_put(PIN, 1);
     soundCreator(freq, duration);
     gpio_put(PIN, 0);
-    sleep_ms(20);
+    sleep_ms(150);
 }
 
 void piscaSEQ() {
     for (int i = 0; i < n+1; i++) {
         if (v[i] == 0) {
-            piscaLED(LEDR_PIN, 264, 0.4);
+            piscaLED(LEDR_PIN, 264, 1000);
         } else if (v[i] == 1) {
-            piscaLED(LEDG_PIN, 330, 0.4);
+            piscaLED(LEDG_PIN, 330, 1000);
         } else if (v[i] == 2) {
-            piscaLED(LEDY_PIN, 440, 0.4);
+            piscaLED(LEDY_PIN, 440, 1000);
         } else if (v[i] == 3) {
-            piscaLED(LEDB_PIN, 528, 0.4);
+            piscaLED(LEDB_PIN, 528, 1000);
         }
     }
 }
 
 void waitInputs() {
-    int i;
-    while ((i < n+1) && (gameState == 1)) {
+    int i = 0;
+    flagR = 0;
+    flagG = 0;
+    flagY = 0;
+    flagB = 0;
+    printf("Entrei Wait Inputs\n");
+    while ((i < n) && (gameState == 1)) {
+        printf("Entrei while\n");
         if (flagR == 1) {
+            printf("Entrou R\n");
+            sleep_ms(200);
             if (v[i] != 0) {
                 gameState = 2;
+                printf("BASOU\n");
             }
             i++;
             flagR = 0; 
         } else if (flagG == 1) {
+            printf("Entrou G\n");
+            sleep_ms(200);
             if (v[i] != 1) {
                 gameState = 2;
+                printf("BASOU\n");
             }
             i++;
             flagG = 0;
         } else if (flagY == 1) {
+            printf("Entrou Y\n");
+            sleep_ms(200);
             if (v[i] != 2) {
                 gameState = 2;
+                printf("BASOU\n");
             }
             i++;
             flagY = 0;
         } else if (flagB == 1) {
+            printf("Entrou B\n");
+            sleep_ms(200);
             if (v[i] != 3) {
                 gameState = 2;
+                printf("BASOU\n");
             }
             i++;
             flagB = 0;
         }
-        sleep_ms(30);
+        sleep_ms(100);
+        printf("Valor de I: %d\n", i);
     }
     return;
 }
@@ -141,51 +156,78 @@ void endingSong() {
 }
 
 void Homecoming() {
-    soundCreator(493, 0.18);
-    sleep_ms(20);
-    soundCreator(493, 0.18);
-    sleep_ms(20);
-    soundCreator(493, 0.18);
-    sleep_ms(20);
-    soundCreator(493, 0.18);
-    sleep_ms(20);
-    soundCreator(493, 0.18);
-    sleep_ms(20);
-    soundCreator(493, 0.18);
-    soundCreator(587, 0.4);
-    soundCreator(523, 0.2);
-    soundCreator(493, 1);
-    sleep_ms(400);
-    soundCreator(493, 0.18);
-    sleep_ms(20);
-    soundCreator(493, 0.18);
-    sleep_ms(20);
-    soundCreator(493, 0.18);
-    sleep_ms(20);
-    soundCreator(493, 0.18);
-    sleep_ms(20);
-    soundCreator(493, 0.18);
-    sleep_ms(20);
-    soundCreator(493, 0.18);
-    soundCreator(587, 0.4);
-    soundCreator(659, 0.2);
-    soundCreator(493, 0.6);
-    soundCreator(440, 0.2);
-    soundCreator(392, 1);
-    sleep_ms(600);
-    soundCreator(392, 0.2);
-    soundCreator(369, 0.38);
-    sleep_ms(20);
-    soundCreator(369, 0.2);
-    soundCreator(392, 0.2);
-    soundCreator(369, 0.4);
-    soundCreator(293, 0.2);
-    soundCreator(329, 1);
-    soundCreator(587, 0.8);
-    soundCreator(493, 0.8);
-    soundCreator(392, 0.4);
-    soundCreator(329, 0.4);
+    // Assuming A4 = 440 Hz, and other frequencies are adjusted accordingly
+    int B4 = 494; // Closest to 493.88 Hz
+    int D5 = 587; // D5
+    int C5 = 523; // C5
+    int G4 = 392; // G4
+    int F4 = 349; // F4
+    int E4 = 329; // E4
+    int A4 = 440; // A4
+    int FSharp4 = 370; // F#4/Gb4
+    int E5 = E4*2;
+    int D4 = 294;
+
+    // Rewriting the function with more accurate pauses and note frequencies
+    soundCreator(B4, 120);
+    sleep_ms(130); // Adjusted pause
+    soundCreator(B4, 120);
+    sleep_ms(130);
+    soundCreator(B4, 120);
+    sleep_ms(130);
+    soundCreator(B4, 120);
+    sleep_ms(130);
+    soundCreator(B4, 120);
+    sleep_ms(130);
+    soundCreator(B4, 180);
+    soundCreator(D5, 400);
+    sleep_ms(100); // Pause before changing notes
+    soundCreator(C5, 200);
+    sleep_ms(100); // Pause before changing notes
+    soundCreator(B4, 1000);
+    sleep_ms(500); // Longer pause
+    soundCreator(B4, 180);
+    sleep_ms(220); // Adjusted pause
+    soundCreator(B4, 180);
+    sleep_ms(220);
+    soundCreator(B4, 180);
+    sleep_ms(220);
+    soundCreator(B4, 180);
+    sleep_ms(220);
+    soundCreator(B4, 180);
+    sleep_ms(220);
+    soundCreator(B4, 180);
+    soundCreator(D5, 400);
+    sleep_ms(100); // Pause before changing notes
+    soundCreator(E5, 200);
+    sleep_ms(100); // Pause before changing notes
+    soundCreator(B4, 600);
+    sleep_ms(200); // Pause before changing notes
+    soundCreator(A4, 200);
+    sleep_ms(100); // Pause before changing notes
+    soundCreator(G4, 1000);
+    sleep_ms(600); // Longer pause
+    soundCreator(G4, 200);
+    soundCreator(FSharp4, 380);
+    sleep_ms(120); // Adjusted pause
+    soundCreator(FSharp4, 200);
+    soundCreator(G4, 200);
+    sleep_ms(100); // Pause before changing notes
+    soundCreator(FSharp4, 400);
+    sleep_ms(200); // Pause before changing notes
+    soundCreator(D4, 200);
+    sleep_ms(100); // Pause before changing notes
+    soundCreator(E4, 1000);
+    sleep_ms(400); // Pause before next part
+    soundCreator(D5, 800);
+    sleep_ms(200); // Pause before changing notes
+    soundCreator(B4, 800);
+    sleep_ms(200); // Pause before changing notes
+    soundCreator(G4, 400);
+    sleep_ms(200); // Pause before changing notes
+    soundCreator(E4, 400);
 }
+
 
 
 int main() {
@@ -232,26 +274,36 @@ int main() {
     gpio_set_irq_enabled(BTNB_PIN, GPIO_IRQ_EDGE_FALL, true);
     gpio_set_irq_enabled(BTNN_PIN, GPIO_IRQ_EDGE_FALL, true);
 
+    printf("Setei Geral\n");
 
     while (true) {
         Homecoming();
         if (flagN == 1) {
             gameState = 1; 
-            flagN = 0;       
+            flagN = 0;   
         }
         while (gameState == 1) {
+            printf("Começou a rodada\n");
             addNewColor();
             piscaSEQ();
-            sleep_ms(500);
+            sleep_ms(200);
             waitInputs();
+            sleep_ms(500);
             roundn++;
         } 
         if (gameState == 2) {
+            printf("Perdeu\n");
             endingSong();
-            printf("%d\n", roundn);
+            printf("%d\n", roundn-1);
             gameState = 0;
             emptyArray();
             roundn = 1;
+            flagG = 0;
+            flagR = 0;
+            flagB = 0;
+            flagY = 0;
         }
+        sleep_ms(1000);
+        printf("GameState: %d\n", gameState);
     }
 }
