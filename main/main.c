@@ -12,6 +12,34 @@
 #include "project.h"
 
 
+const int melody[] = {
+
+  // At Doom's Gate (E1M1)
+  // Score available at https://musescore.com/pieridot/doom
+
+  NOTE_E2, 8, NOTE_E2, 8, NOTE_E3, 8, NOTE_E2, 8, NOTE_E2, 8, NOTE_D3, 8, NOTE_E2, 8, NOTE_E2, 8, //1
+  NOTE_C3, 8, NOTE_E2, 8, NOTE_E2, 8, NOTE_AS2, 8, NOTE_E2, 8, NOTE_E2, 8, NOTE_B2, 8, NOTE_C3, 8,
+  NOTE_E2, 8, NOTE_E2, 8, NOTE_E3, 8, NOTE_E2, 8, NOTE_E2, 8, NOTE_D3, 8, NOTE_E2, 8, NOTE_E2, 8,
+  NOTE_C3, 8, NOTE_E2, 8, NOTE_E2, 8, NOTE_AS2, -2,
+
+  NOTE_E2, 8, NOTE_E2, 8, NOTE_E3, 8, NOTE_E2, 8, NOTE_E2, 8, NOTE_D3, 8, NOTE_E2, 8, NOTE_E2, 8, //5
+  NOTE_C3, 8, NOTE_E2, 8, NOTE_E2, 8, NOTE_AS2, 8, NOTE_E2, 8, NOTE_E2, 8, NOTE_B2, 8, NOTE_C3, 8,
+  NOTE_E2, 8, NOTE_E2, 8, NOTE_E3, 8, NOTE_E2, 8, NOTE_E2, 8, NOTE_D3, 8, NOTE_E2, 8, NOTE_E2, 8,
+  NOTE_C3, 8, NOTE_E2, 8, NOTE_E2, 8, NOTE_AS2, -2,
+
+  NOTE_E2, 8, NOTE_E2, 8, NOTE_E3, 8, NOTE_E2, 8, NOTE_E2, 8, NOTE_D3, 8, NOTE_E2, 8, NOTE_E2, 8, //9
+  NOTE_C3, 8, NOTE_E2, 8, NOTE_E2, 8, NOTE_AS2, 8, NOTE_E2, 8, NOTE_E2, 8, NOTE_B2, 8, NOTE_C3, 8,
+  NOTE_E2, 8, NOTE_E2, 8, NOTE_E3, 8, NOTE_E2, 8, NOTE_E2, 8, NOTE_D3, 8, NOTE_E2, 8, NOTE_E2, 8,
+  NOTE_C3, 8, NOTE_E2, 8, NOTE_E2, 8, NOTE_AS2, -2,
+
+  NOTE_E2, 8, NOTE_E2, 8, NOTE_E3, 8, NOTE_E2, 8, NOTE_E2, 8, NOTE_D3, 8, NOTE_E2, 8, NOTE_E2, 8, //13
+  NOTE_C3, 8, NOTE_E2, 8, NOTE_E2, 8, NOTE_AS2, 8, NOTE_E2, 8, NOTE_E2, 8, NOTE_B2, 8, NOTE_C3, 8,
+  NOTE_E2, 8, NOTE_E2, 8, NOTE_E3, 8, NOTE_E2, 8, NOTE_E2, 8, NOTE_D3, 8, NOTE_E2, 8, NOTE_E2, 8,
+  NOTE_FS3, -16, NOTE_D3, -16, NOTE_B2, -16, NOTE_A3, -16, NOTE_FS3, -16, NOTE_B2, -16, NOTE_D3, -16, NOTE_FS3, -16, NOTE_A3, -16, NOTE_FS3, -16, NOTE_D3, -16, NOTE_B2, -16,
+  
+};
+
+
 volatile int flagR = 0;
 volatile int flagG = 0;
 volatile int flagY = 0;
@@ -53,15 +81,16 @@ void addNewColor() {
 }
 
 void soundCreator(int freq, int duration) {
-    float period_ms = 1000.0 / freq;
-    int half_period_ms = (int)(period_ms / 2.0);
+    double period_ms = 1000.0 / freq;
+    double half_period_ms = (period_ms / 2.0);
+    int half_period_us = (int)(half_period_ms*1000);
     int total_cycles = freq * duration / 1000;
     
     for (int i = 0; i < total_cycles; i++) {
         gpio_put(BUZ_PIN, 1);
-        sleep_ms(half_period_ms);
+        sleep_us(half_period_us);
         gpio_put(BUZ_PIN, 0);
-        sleep_ms(half_period_ms);
+        sleep_us(half_period_us);
     }
 }
 
@@ -69,19 +98,19 @@ void piscaLED(int PIN, int freq, int duration) {
     gpio_put(PIN, 1);
     soundCreator(freq, duration);
     gpio_put(PIN, 0);
-    sleep_ms(150);
+    sleep_ms(80);
 }
 
 void piscaSEQ() {
     for (int i = 0; i < n+1; i++) {
         if (v[i] == 0) {
-            piscaLED(LEDR_PIN, 264, 1000);
+            piscaLED(LEDR_PIN, NOTE_C4, (1000-(20*roundn)));
         } else if (v[i] == 1) {
-            piscaLED(LEDG_PIN, 330, 1000);
+            piscaLED(LEDG_PIN, NOTE_E4, (1000-(20*roundn)));
         } else if (v[i] == 2) {
-            piscaLED(LEDY_PIN, 440, 1000);
+            piscaLED(LEDY_PIN, NOTE_G4, (1000-(20*roundn)));
         } else if (v[i] == 3) {
-            piscaLED(LEDB_PIN, 528, 1000);
+            piscaLED(LEDR_PIN, NOTE_C4, (1000-(20*roundn)));
         }
     }
 }
@@ -96,6 +125,7 @@ void waitInputs() {
     while ((i < n) && (gameState == 1)) {
         printf("Entrei while\n");
         if (flagR == 1) {
+            piscaLED(LEDR_PIN, 264, 400);
             printf("Entrou R\n");
             sleep_ms(200);
             if (v[i] != 0) {
@@ -105,6 +135,7 @@ void waitInputs() {
             i++;
             flagR = 0; 
         } else if (flagG == 1) {
+            piscaLED(LEDG_PIN, 264, 400);
             printf("Entrou G\n");
             sleep_ms(200);
             if (v[i] != 1) {
@@ -114,6 +145,7 @@ void waitInputs() {
             i++;
             flagG = 0;
         } else if (flagY == 1) {
+            piscaLED(LEDY_PIN, 264, 400);
             printf("Entrou Y\n");
             sleep_ms(200);
             if (v[i] != 2) {
@@ -123,6 +155,7 @@ void waitInputs() {
             i++;
             flagY = 0;
         } else if (flagB == 1) {
+            piscaLED(LEDB_PIN, 264, 400);
             printf("Entrou B\n");
             sleep_ms(200);
             if (v[i] != 3) {
@@ -149,88 +182,59 @@ void emptyArray() {
 }
 
 void endingSong() {
-    soundCreator(264, 0.5);
-    soundCreator(198, 0.5);
-    soundCreator(165, 0.5);
-    soundCreator(132, 2);
+    soundCreator(264, 500);
+    sleep_ms(100);
+    soundCreator(198, 500);
+    sleep_ms(100);
+    soundCreator(165, 500);
+    sleep_ms(100);
+    soundCreator(132, 2000);
+    printf("Acabei de Tocar");
 }
 
-void Homecoming() {
-    // Assuming A4 = 440 Hz, and other frequencies are adjusted accordingly
-    int B4 = 494; // Closest to 493.88 Hz
-    int D5 = 587; // D5
-    int C5 = 523; // C5
-    int G4 = 392; // G4
-    int F4 = 349; // F4
-    int E4 = 329; // E4
-    int A4 = 440; // A4
-    int FSharp4 = 370; // F#4/Gb4
-    int E5 = E4*2;
-    int D4 = 294;
+void intro() {
+    int tempo = 225;
+    int notes = sizeof(melody) / sizeof(melody[0]) / 2;
+    int wholenote = (60000 * 4) / tempo;
+    int divider = 0, noteDuration = 0;
 
-    // Rewriting the function with more accurate pauses and note frequencies
-    soundCreator(B4, 120);
-    sleep_ms(130); // Adjusted pause
-    soundCreator(B4, 120);
-    sleep_ms(130);
-    soundCreator(B4, 120);
-    sleep_ms(130);
-    soundCreator(B4, 120);
-    sleep_ms(130);
-    soundCreator(B4, 120);
-    sleep_ms(130);
-    soundCreator(B4, 180);
-    soundCreator(D5, 400);
-    sleep_ms(100); // Pause before changing notes
-    soundCreator(C5, 200);
-    sleep_ms(100); // Pause before changing notes
-    soundCreator(B4, 1000);
-    sleep_ms(500); // Longer pause
-    soundCreator(B4, 180);
-    sleep_ms(220); // Adjusted pause
-    soundCreator(B4, 180);
-    sleep_ms(220);
-    soundCreator(B4, 180);
-    sleep_ms(220);
-    soundCreator(B4, 180);
-    sleep_ms(220);
-    soundCreator(B4, 180);
-    sleep_ms(220);
-    soundCreator(B4, 180);
-    soundCreator(D5, 400);
-    sleep_ms(100); // Pause before changing notes
-    soundCreator(E5, 200);
-    sleep_ms(100); // Pause before changing notes
-    soundCreator(B4, 600);
-    sleep_ms(200); // Pause before changing notes
-    soundCreator(A4, 200);
-    sleep_ms(100); // Pause before changing notes
-    soundCreator(G4, 1000);
-    sleep_ms(600); // Longer pause
-    soundCreator(G4, 200);
-    soundCreator(FSharp4, 380);
-    sleep_ms(120); // Adjusted pause
-    soundCreator(FSharp4, 200);
-    soundCreator(G4, 200);
-    sleep_ms(100); // Pause before changing notes
-    soundCreator(FSharp4, 400);
-    sleep_ms(200); // Pause before changing notes
-    soundCreator(D4, 200);
-    sleep_ms(100); // Pause before changing notes
-    soundCreator(E4, 1000);
-    sleep_ms(400); // Pause before next part
-    soundCreator(D5, 800);
-    sleep_ms(200); // Pause before changing notes
-    soundCreator(B4, 800);
-    sleep_ms(200); // Pause before changing notes
-    soundCreator(G4, 400);
-    sleep_ms(200); // Pause before changing notes
-    soundCreator(E4, 400);
+    for (int thisNote = 0; thisNote < notes * 2; thisNote += 2) {
+        divider = melody[thisNote + 1];
+        if (divider > 0) {
+            noteDuration = wholenote / divider;
+        } else if (divider < 0) {
+            noteDuration = wholenote / abs(divider);
+            noteDuration *= 1.5; 
+        }
+
+        int playDuration = noteDuration * 0.9;
+        soundCreator(melody[thisNote], (int)playDuration);
+        sleep_ms(noteDuration - (int)playDuration);
+    }
 }
 
 
 
-int main() {
+void score() {
+    if (roundn == 1) {
+        return;
+    }
+    for (int i = 0; i <= roundn-3; i++) {
+        if ((i+4) % 4 == 0) {
+            piscaLED(LEDY_PIN, 100, 500);
+        } else if ((i+4) % 4 == 1) {
+            piscaLED(LEDR_PIN, 100, 500);
+        } else if ((i+4) % 4 == 2) {
+            piscaLED(LEDB_PIN, 100, 500);
+        } else if ((i+4) % 4 == 3) {
+            piscaLED(LEDG_PIN, 100, 500);
+        }
+    }
+}
+
+
+
+ int main() {
     stdio_init_all();
 
     gpio_init(BTNR_PIN);
@@ -277,23 +281,25 @@ int main() {
     printf("Setei Geral\n");
 
     while (true) {
-        Homecoming();
+        intro();
         if (flagN == 1) {
             gameState = 1; 
-            flagN = 0;   
+            flagN = 0;
+            printf("Toquei!\n");   
         }
         while (gameState == 1) {
             printf("Começou a rodada\n");
             addNewColor();
             piscaSEQ();
-            sleep_ms(200);
+            sleep_ms(100);
             waitInputs();
-            sleep_ms(500);
+            sleep_ms(200);
             roundn++;
         } 
         if (gameState == 2) {
             printf("Perdeu\n");
             endingSong();
+            score();
             printf("%d\n", roundn-1);
             gameState = 0;
             emptyArray();
