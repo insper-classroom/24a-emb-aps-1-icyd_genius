@@ -46,12 +46,6 @@ volatile int flagY = 0;
 volatile int flagB = 0;
 volatile int flagN = 0;
 
-volatile int v[] = {};
-volatile int n = 0;
-volatile int Highscore = 0;
-volatile int gameState = 0;
-volatile int roundn = 1;
-
 
 void btn_callback(uint gpio, uint32_t events) {
   if (events == 0x4) {
@@ -279,6 +273,12 @@ void score() {
     gpio_set_irq_enabled(BTNN_PIN, GPIO_IRQ_EDGE_FALL, true);
 
     printf("Setei Geral\n");
+
+    int v[] = {};
+    int n = 0;
+    int Highscore = 0;
+    int gameState = 0;
+    int roundn = 1;
 
     while (true) {
         intro();
