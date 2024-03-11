@@ -113,11 +113,6 @@ extern volatile int flagY;
 extern volatile int flagB;
 extern volatile int flagN;
 
-extern volatile int v[];
-extern volatile int n;
-extern volatile int Highscore;
-extern volatile int gameState;
-extern volatile int roundn;
 
 void btn_callback(uint gpio, uint32_t events);
 int getRandomNumber();
