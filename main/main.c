@@ -274,11 +274,11 @@ void score() {
 
     printf("Setei Geral\n");
 
-    int v[] = {};
-    int n = 0;
-    int Highscore = 0;
-    int gameState = 0;
-    int roundn = 1;
+    volatile int v[] = {};
+    volatile int n = 0;
+    volatile int Highscore = 0;
+    volatile int gameState = 0;
+    volatile int roundn = 1;
 
     while (true) {
         intro();
